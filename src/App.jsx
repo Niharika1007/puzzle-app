@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider } from "./firebase";
+import { dbPromise } from "./db";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -9,14 +10,37 @@ function App() {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
+
+      // 🔹 Save user to backend
+      const response = await fetch("http://localhost:5000/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: result.user.displayName,
+          email: result.user.email,
+        }),
+      });
+
+      const data = await response.json();
+      console.log("User saved to DB:", data);
+
+      // 🔹 Save login state in IndexedDB
+      const db = await dbPromise;
+      await db.put("progress", { loggedIn: true }, "userStatus");
+
     } catch (error) {
-      console.error(error);
+      console.error("Login Error:", error);
     }
   };
 
   const handleLogout = async () => {
     await signOut(auth);
     setUser(null);
+
+    const db = await dbPromise;
+    await db.put("progress", { loggedIn: false }, "userStatus");
   };
 
   return (
