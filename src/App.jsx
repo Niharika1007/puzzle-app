@@ -6,19 +6,20 @@ const PuzzleBoard = React.lazy(() => import("./components/PuzzleBoard"));
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   const BACKEND_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
-  // 🔑 Persist login using Firebase
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser || null);
+      setLoadingUser(false);
     });
+
     return () => unsubscribe();
   }, []);
 
-  // Login with Google
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
@@ -27,37 +28,39 @@ function App() {
       await fetch(`${BACKEND_URL}/users`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // 🔑 Include cookies
+        credentials: "include",
         body: JSON.stringify({
           name: result.user.displayName,
           email: result.user.email,
         }),
       });
-
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error(error);
     }
   };
 
-  // Logout
   const handleLogout = async () => {
     await signOut(auth);
-    setUser(null); // Clear local user state
+    setUser(null);
   };
 
+  if (loadingUser) return <div>Loading user...</div>;
+
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       {user ? (
         <>
-          <h1 className="text-2xl font-bold mb-4">Welcome, {user.displayName}</h1>
+          <h1 className="text-2xl font-bold mb-4">
+            Welcome, {user.displayName}
+          </h1>
 
           <Suspense fallback={<div>Loading puzzles...</div>}>
-            <PuzzleBoard />
+            <PuzzleBoard user={user} />
           </Suspense>
 
           <button
             onClick={handleLogout}
-            className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+            className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
           >
             Logout
           </button>
@@ -65,7 +68,7 @@ function App() {
       ) : (
         <button
           onClick={handleLogin}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg"
+          className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Login with Google
         </button>
