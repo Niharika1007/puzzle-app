@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, provider } from "./firebase";
 import { dbPromise } from "./db";
@@ -6,13 +6,29 @@ import { dbPromise } from "./db";
 function App() {
   const [user, setUser] = useState(null);
 
+  // ✅ Automatically switch between local & deployed backend
+  const BACKEND_URL =
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
 
-      // 🔹 Save user to backend
-      const response = await fetch("http://localhost:5000/users", {
+      // ✅ Save user to backend
+      const response = await fetch(`${BACKEND_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -26,7 +42,7 @@ function App() {
       const data = await response.json();
       console.log("User saved to DB:", data);
 
-      // 🔹 Save login state in IndexedDB
+      // ✅ Save login state in IndexedDB
       const db = await dbPromise;
       await db.put("progress", { loggedIn: true }, "userStatus");
 

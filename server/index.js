@@ -16,6 +16,15 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://puzzle-app-liard.vercel.app"
+    ],
+  })
+);
+
 app.get("/", (req, res) => {
   res.send("Server running");
 });
@@ -25,13 +34,21 @@ app.post("/users", async (req, res) => {
 
   try {
     const result = await pool.query(
-      "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *",
+      `
+      INSERT INTO users (name, email)
+      VALUES ($1, $2)
+      ON CONFLICT (email)
+      DO UPDATE SET name = EXCLUDED.name
+      RETURNING *;
+      `,
       [name, email]
     );
-    res.json(result.rows[0]);
+
+    res.status(201).json(result.rows[0]);
+
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error saving user");
+    console.error("DB ERROR:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
