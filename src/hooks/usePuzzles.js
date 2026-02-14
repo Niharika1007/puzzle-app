@@ -1,16 +1,55 @@
 import { useState, useEffect } from "react";
-import { fetchPuzzles } from "../services/puzzleService";
+import { fetchPuzzlesAPI, saveProgressAPI } from "../services/api";
 
-export default function usePuzzle() {
+export const usePuzzles = () => {
 
   const [puzzles, setPuzzles] = useState([]);
 
+  const [solved, setSolved] = useState([]);
+
   useEffect(() => {
 
-    fetchPuzzles().then(setPuzzles);
+    loadPuzzles();
 
   }, []);
 
-  return puzzles;
 
-}
+  const loadPuzzles = async () => {
+
+    try {
+
+      const data = await fetchPuzzlesAPI();
+
+      console.log("Loaded puzzles:", data);
+
+      setPuzzles(data);
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+  };
+
+
+  const markSolved = async (id) => {
+
+    const updated = [...solved, id];
+
+    setSolved(updated);
+
+    await saveProgressAPI(updated);
+
+  };
+
+
+  return {
+
+    puzzles,
+    solved,
+    markSolved,
+
+  };
+
+};
