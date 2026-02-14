@@ -1,26 +1,12 @@
 import React, { useEffect, useState } from "react";
-
 import PuzzleCard from "./PuzzleCard";
-
-import {
-  fetchPuzzles,
-  saveProgressBatch
-} from "../services/puzzleService";
-
-import {
-  savePuzzleCache,
-  getPuzzleCache
-} from "../utils/cache";
-
+import { fetchPuzzles, saveProgressBatch } from "../services/api";
+import { savePuzzleCache, getPuzzleCache } from "../utils/cache";
 
 function PuzzleBoard() {
 
-  const [puzzles, setPuzzles] =
-    useState([]);
-
-  const [progressBatch, setProgressBatch] =
-    useState([]);
-
+  const [puzzles, setPuzzles] = useState([]);
+  const [progressBatch, setProgressBatch] = useState([]);
 
   useEffect(() => {
 
@@ -28,45 +14,29 @@ function PuzzleBoard() {
 
       try {
 
-        const cached =
-          getPuzzleCache();
+        console.log("Loading puzzles...");
 
-        if (
-          cached &&
-          cached.length > 0
-        ) {
+        const cached = getPuzzleCache();
 
-          console.log(
-            "Loaded from cache:",
-            cached
-          );
+        if (cached && cached.length > 0) {
+
+          console.log("Loaded from cache:", cached);
 
           setPuzzles(cached);
-
           return;
-
         }
 
-        const data =
-          await fetchPuzzles();
+        const data = await fetchPuzzles();
 
-        console.log(
-          "Loaded from API:",
-          data
-        );
+        console.log("Loaded from API:", data);
 
         setPuzzles(data);
 
         savePuzzleCache(data);
 
-      }
+      } catch (error) {
 
-      catch (error) {
-
-        console.error(
-          "Puzzle load error:",
-          error
-        );
+        console.error("Puzzle load error:", error);
 
       }
 
@@ -76,11 +46,9 @@ function PuzzleBoard() {
 
   }, []);
 
-
   function handleSolve(id) {
 
-    const updated =
-      [...progressBatch, id];
+    const updated = [...progressBatch, id];
 
     setProgressBatch(updated);
 
@@ -94,14 +62,8 @@ function PuzzleBoard() {
 
   }
 
-
-  if (!puzzles.length)
-    return (
-      <div>
-        Loading puzzles...
-      </div>
-    );
-
+  if (puzzles.length === 0)
+    return <div>Loading puzzles...</div>;
 
   return (
 
@@ -110,13 +72,9 @@ function PuzzleBoard() {
       {puzzles.map((puzzle) => (
 
         <PuzzleCard
-
           key={puzzle.id}
-
           puzzle={puzzle}
-
           onSolve={handleSolve}
-
         />
 
       ))}

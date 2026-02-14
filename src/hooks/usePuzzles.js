@@ -1,55 +1,67 @@
 import { useState, useEffect } from "react";
-import { fetchPuzzlesAPI, saveProgressAPI } from "../services/api";
+import { fetchPuzzles, saveProgressBatch } from "../services/puzzleService";
+import { getPuzzleCache, savePuzzleCache } from "../utils/cache";
 
-export const usePuzzles = () => {
+export default function usePuzzle() {
 
   const [puzzles, setPuzzles] = useState([]);
-
-  const [solved, setSolved] = useState([]);
+  const [solvedBatch, setSolvedBatch] = useState([]);
 
   useEffect(() => {
 
-    loadPuzzles();
+    async function load() {
+
+      try {
+
+        const cached = getPuzzleCache();
+
+        if (cached.length > 0) {
+          console.log("Loaded from cache");
+          setPuzzles(cached);
+          return;
+        }
+
+        const data = await fetchPuzzles();
+
+        console.log("Loaded from API:", data);
+
+        setPuzzles(data);
+
+        savePuzzleCache(data);
+
+      } catch (err) {
+
+        console.error(err);
+
+      }
+
+    }
+
+    load();
 
   }, []);
 
+  const markSolved = async (id) => {
 
-  const loadPuzzles = async () => {
+    const updated = [...solvedBatch, id];
 
-    try {
+    setSolvedBatch(updated);
 
-      const data = await fetchPuzzlesAPI();
+    if (updated.length >= 5) {
 
-      console.log("Loaded puzzles:", data);
+      await saveProgressBatch(updated);
 
-      setPuzzles(data);
-
-    } catch (err) {
-
-      console.error(err);
+      setSolvedBatch([]);
 
     }
 
   };
 
-
-  const markSolved = async (id) => {
-
-    const updated = [...solved, id];
-
-    setSolved(updated);
-
-    await saveProgressAPI(updated);
-
-  };
-
-
   return {
 
     puzzles,
-    solved,
-    markSolved,
+    markSolved
 
   };
 
-};
+}

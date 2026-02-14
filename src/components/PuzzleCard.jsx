@@ -7,15 +7,11 @@ function PuzzleCard({ puzzle, onSolve }) {
     <div className="bg-white p-4 rounded shadow w-80">
 
       <h2 className="text-lg font-bold mb-2">
-
         Puzzle #{puzzle.id}
-
       </h2>
 
       <p className="mb-4">
-
         {puzzle.question}
-
       </p>
 
       <button

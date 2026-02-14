@@ -1,34 +1,60 @@
 const BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
 
+export async function fetchPuzzles() {
 
-export const fetchPuzzlesAPI = async () => {
+  try {
 
-  const response = await fetch(`${BASE_URL}/puzzles`, {
-    credentials: "include",
-  });
+    console.log("Fetching from:", `${BASE_URL}/puzzles`);
 
-  if (!response.ok)
-    throw new Error("Failed to fetch puzzles");
+    const response =
+      await fetch(`${BASE_URL}/puzzles`, {
+        credentials: "include"
+      });
 
-  return await response.json();
-};
+    if (!response.ok)
+      throw new Error("Failed to fetch puzzles");
 
+    const data =
+      await response.json();
 
-export const saveProgressAPI = async (progress) => {
+    return data;
 
-  await fetch(`${BASE_URL}/puzzles/progress`, {
+  } catch (err) {
 
-    method: "POST",
+    console.error("Fetch error:", err);
 
-    headers: {
-      "Content-Type": "application/json",
-    },
+    return [];
 
-    credentials: "include",
+  }
 
-    body: JSON.stringify({ progress }),
+}
 
-  });
+export async function saveProgressBatch(batch) {
 
-};
+  try {
+
+    await fetch(`${BASE_URL}/puzzles/progress`, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      credentials: "include",
+
+      body: JSON.stringify({
+        progress: batch
+      })
+
+    });
+
+  } catch (err) {
+
+    console.error("Progress save error:", err);
+
+  }
+
+}
