@@ -1,22 +1,18 @@
-import { useState, useEffect } from "react";
-import { signInWithPopup, signOut } from "firebase/auth";
+import { useState, useEffect, Suspense } from "react";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { auth, provider } from "./firebase";
-import { dbPromise } from "./db";
+
+const Puzzle = React.lazy(() => import("./components/Puzzle"));
 
 function App() {
   const [user, setUser] = useState(null);
 
-  // ✅ Automatically switch between local & deployed backend
   const BACKEND_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-      } else {
-        setUser(null);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser || null);
     });
 
     return () => unsubscribe();
@@ -25,10 +21,8 @@ function App() {
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
 
-      // ✅ Save user to backend
-      const response = await fetch(`${BACKEND_URL}/users`, {
+      await fetch(`${BACKEND_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,48 +33,38 @@ function App() {
         }),
       });
 
-      const data = await response.json();
-      console.log("User saved to DB:", data);
-
-      // ✅ Save login state in IndexedDB
-      const db = await dbPromise;
-      await db.put("progress", { loggedIn: true }, "userStatus");
-
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error(error);
     }
   };
 
   const handleLogout = async () => {
     await signOut(auth);
-    setUser(null);
-
-    const db = await dbPromise;
-    await db.put("progress", { loggedIn: false }, "userStatus");
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div className="h-screen flex flex-col items-center justify-center">
+
       {user ? (
         <>
-          <h1 className="text-2xl font-bold mb-4">
+          <h1 className="text-2xl mb-4">
             Welcome, {user.displayName}
           </h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded"
-          >
+
+          <Suspense fallback={<div>Loading...</div>}>
+            <Puzzle />
+          </Suspense>
+
+          <button onClick={handleLogout}>
             Logout
           </button>
         </>
       ) : (
-        <button
-          onClick={handleLogin}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg"
-        >
+        <button onClick={handleLogin}>
           Login with Google
         </button>
       )}
+
     </div>
   );
 }
