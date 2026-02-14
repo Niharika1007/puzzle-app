@@ -1,61 +1,57 @@
-const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
+
 
 export async function fetchPuzzles() {
 
   try {
 
-    const response = await fetch(`${BACKEND_URL}/puzzles`);
+    const response =
+      await fetch(`${BASE_URL}/puzzles`);
 
-    if (!response.ok) {
-
+    if (!response.ok)
       throw new Error("Failed to fetch puzzles");
 
-    }
+    const data =
+      await response.json();
 
-    const data = await response.json();
+    console.log("Fetched puzzles:", data);
 
     return data;
 
-  } catch (error) {
+  } catch (err) {
 
-    console.error("Fetch puzzles error:", error);
+    console.error("Fetch error:", err);
 
-    const cached = localStorage.getItem("puzzleCache");
-
-    return cached ? JSON.parse(cached) : [];
+    return [];
 
   }
 
 }
 
-export async function saveProgressBatch(progressArray) {
+
+export async function saveProgressBatch(batch) {
 
   try {
 
-    await fetch(`${BACKEND_URL}/puzzles/progress`, {
+    await fetch(`${BASE_URL}/puzzles/progress`, {
 
       method: "POST",
 
       headers: {
-
-        "Content-Type": "application/json",
-
+        "Content-Type": "application/json"
       },
 
       body: JSON.stringify({
-
-        progress: progressArray,
-
-      }),
+        progress: batch
+      })
 
     });
 
-    console.log("Progress synced");
+  } catch (err) {
 
-  } catch (error) {
-
-    console.error("Progress sync failed:", error);
+    console.error("Progress save error:", err);
 
   }
 

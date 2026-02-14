@@ -1,13 +1,26 @@
 import React, { useEffect, useState } from "react";
 
 import PuzzleCard from "./PuzzleCard";
-import { fetchPuzzles, saveProgressBatch } from "../services/puzzleService";
-import { savePuzzleCache, getPuzzleCache } from "../utils/cache";
+
+import {
+  fetchPuzzles,
+  saveProgressBatch
+} from "../services/puzzleService";
+
+import {
+  savePuzzleCache,
+  getPuzzleCache
+} from "../utils/cache";
+
 
 function PuzzleBoard() {
 
-  const [puzzles, setPuzzles] = useState([]);
-  const [progressBatch, setProgressBatch] = useState([]);
+  const [puzzles, setPuzzles] =
+    useState([]);
+
+  const [progressBatch, setProgressBatch] =
+    useState([]);
+
 
   useEffect(() => {
 
@@ -15,24 +28,45 @@ function PuzzleBoard() {
 
       try {
 
-        const cached = getPuzzleCache();
+        const cached =
+          getPuzzleCache();
 
-        if (cached.length > 0) {
+        if (
+          cached &&
+          cached.length > 0
+        ) {
+
+          console.log(
+            "Loaded from cache:",
+            cached
+          );
 
           setPuzzles(cached);
 
           return;
+
         }
 
-        const data = await fetchPuzzles();
+        const data =
+          await fetchPuzzles();
+
+        console.log(
+          "Loaded from API:",
+          data
+        );
 
         setPuzzles(data);
 
         savePuzzleCache(data);
 
-      } catch (error) {
+      }
 
-        console.error(error);
+      catch (error) {
+
+        console.error(
+          "Puzzle load error:",
+          error
+        );
 
       }
 
@@ -45,7 +79,8 @@ function PuzzleBoard() {
 
   function handleSolve(id) {
 
-    const updated = [...progressBatch, id];
+    const updated =
+      [...progressBatch, id];
 
     setProgressBatch(updated);
 
@@ -59,6 +94,15 @@ function PuzzleBoard() {
 
   }
 
+
+  if (!puzzles.length)
+    return (
+      <div>
+        Loading puzzles...
+      </div>
+    );
+
+
   return (
 
     <div className="flex flex-wrap gap-4">
@@ -66,9 +110,13 @@ function PuzzleBoard() {
       {puzzles.map((puzzle) => (
 
         <PuzzleCard
+
           key={puzzle.id}
+
           puzzle={puzzle}
+
           onSolve={handleSolve}
+
         />
 
       ))}

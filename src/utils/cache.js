@@ -1,34 +1,44 @@
-export function savePuzzleCache(puzzles) {
+import LZString from "lz-string";
+
+const PUZZLE_CACHE_KEY = "puzzle_cache";
+
+export function savePuzzleCache(data) {
 
   try {
 
-    localStorage.setItem(
+    const compressed = LZString.compress(JSON.stringify(data));
 
-      "puzzleCache",
+    localStorage.setItem(PUZZLE_CACHE_KEY, compressed);
 
-      JSON.stringify(puzzles)
+  } catch (err) {
 
-    );
-
-  } catch (error) {
-
-    console.error("Cache save failed:", error);
+    console.error("Cache save error:", err);
 
   }
 
 }
 
+
 export function getPuzzleCache() {
 
   try {
 
-    const cached = localStorage.getItem("puzzleCache");
+    const compressed = localStorage.getItem(PUZZLE_CACHE_KEY);
 
-    return cached ? JSON.parse(cached) : [];
+    if (!compressed)
+      return [];
 
-  } catch (error) {
+    const decompressed =
+      LZString.decompress(compressed);
 
-    console.error("Cache read failed:", error);
+    if (!decompressed)
+      return [];
+
+    return JSON.parse(decompressed);
+
+  } catch (err) {
+
+    console.error("Cache read error:", err);
 
     return [];
 
