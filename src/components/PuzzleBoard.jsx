@@ -10,38 +10,54 @@ function PuzzleBoard() {
   useEffect(() => {
     async function init() {
       try {
+        // 1️⃣ Check cache first
         const cached = getPuzzleCache();
         if (cached.length > 0) {
+          console.log("Using cached puzzles:", cached);
           setPuzzles(cached);
           return;
         }
 
+        // 2️⃣ Fetch from backend
         const data = await fetchPuzzles();
+        console.log("Fetched puzzles from backend:", data);
+
         setPuzzles(data);
         savePuzzleCache(data);
-
       } catch (error) {
-        console.error("Puzzle load error:", error);
+        console.error("Error loading puzzles:", error);
       }
     }
 
     init();
   }, []);
 
-  const handleSolve = async (id) => {
+  const handleSolve = (id) => {
     const updated = [...progressBatch, id];
     setProgressBatch(updated);
 
     if (updated.length >= 5) {
-      await saveProgressBatch(updated);
+      saveProgressBatch(updated);
       setProgressBatch([]);
     }
   };
 
+  if (puzzles.length === 0) {
+    return (
+      <div className="text-center text-gray-500 mt-6">
+        Loading puzzles...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-6 justify-center mt-6 px-4">
       {puzzles.map((puzzle) => (
-        <PuzzleCard key={puzzle.id} puzzle={puzzle} onSolve={handleSolve} />
+        <PuzzleCard
+          key={puzzle.id}
+          puzzle={puzzle}
+          onSolve={handleSolve}
+        />
       ))}
     </div>
   );

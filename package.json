@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.7",
@@ -35,5 +36,18 @@
     "tailwindcss": "^4.1.18",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.2.0"
-  }
+  },
+  "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Niharika1007/puzzle-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Niharika1007/puzzle-app/issues"
+  },
+  "homepage": "https://github.com/Niharika1007/puzzle-app#readme"
 }
