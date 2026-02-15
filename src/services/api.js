@@ -25,3 +25,22 @@ export async function saveProgressBatch(batch) {
     console.error(err);
   }
 }
+
+export async function validateAnswer(id, answer) {
+
+  const res = await fetch(`${BASE_URL}/puzzles/validate`, {
+
+    method: "POST",
+
+    headers: {
+      "Content-Type": "application/json"
+    },
+
+    credentials: "include",
+
+    body: JSON.stringify({ id, answer })
+
+  });
+
+  return await res.json();
+}

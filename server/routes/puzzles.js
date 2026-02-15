@@ -2,28 +2,36 @@ import express from "express";
 
 const router = express.Router();
 
-// Static puzzles data
 const puzzles = [
-  { id: 1, question: "What is 2 + 2?" },
-  { id: 2, question: "What is 5 × 3?" },
-  { id: 3, question: "What is 10 − 4?" },
-  { id: 4, question: "What is 9 ÷ 3?" },
-  { id: 5, question: "What is 7 + 6?" }
+  { id: 1, question: "What is 2 + 2?", answer: "4" },
+  { id: 2, question: "What is 5 × 3?", answer: "15" },
+  { id: 3, question: "What is 10 − 4?", answer: "6" },
+  { id: 4, question: "What is 9 ÷ 3?", answer: "3" },
+  { id: 5, question: "What is 7 + 6?", answer: "13" }
 ];
 
-// GET puzzles
+// send puzzles WITHOUT answers for security
 router.get("/", (req, res) => {
-  console.log("Sending puzzles...");
-  res.status(200).json(puzzles);
+  const safePuzzles = puzzles.map(({ answer, ...rest }) => rest);
+  res.json(safePuzzles);
 });
 
-// Save progress
-router.post("/progress", (req, res) => {
-  console.log("Progress received:", req.body);
+// validate answer
+router.post("/validate", (req, res) => {
 
-  res.status(200).json({
-    success: true
-  });
+  const { id, answer } = req.body;
+
+  const puzzle = puzzles.find(p => p.id === id);
+
+  if (!puzzle) {
+    return res.status(404).json({ correct: false });
+  }
+
+  const correct =
+    puzzle.answer.toString().trim() === answer.toString().trim();
+
+  res.json({ correct });
+
 });
 
 export default router;
