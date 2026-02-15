@@ -2,42 +2,28 @@ import express from "express";
 
 const router = express.Router();
 
+// Static puzzles data
 const puzzles = [
-
   { id: 1, question: "What is 2 + 2?" },
-
   { id: 2, question: "What is 5 × 3?" },
-
   { id: 3, question: "What is 10 − 4?" },
-
   { id: 4, question: "What is 9 ÷ 3?" },
-
   { id: 5, question: "What is 7 + 6?" }
-
 ];
 
-
-// ✅ GET all puzzles
+// GET puzzles
 router.get("/", (req, res) => {
-
-  res.json(puzzles);
-
+  console.log("Sending puzzles...");
+  res.status(200).json(puzzles);
 });
 
-
-// ✅ Save progress
+// Save progress
 router.post("/progress", (req, res) => {
+  console.log("Progress received:", req.body);
 
-  console.log("Received progress:", req.body.progress);
-
-  res.json({
-
+  res.status(200).json({
     success: true
-
   });
-
 });
 
-
-// ✅ REQUIRED FOR ES MODULES
 export default router;
